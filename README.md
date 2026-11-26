@@ -8,30 +8,48 @@ CloudVault is a full-stack file storage and sharing application built with Java 
 
 ## Application Preview
 
-![CloudVault dashboard](docs/screenshots/dashboard.png)
+
+## Application Preview
+
+### My Cloud
+
+![Dashboard](docs/screenshots/My-cloud.png)
 
 <details>
-<summary>Login page</summary>
+<summary>Login Page</summary>
 
-![Login page](docs/screenshots/login.png)
+![Login Page](docs/screenshots/login.png)
 
 </details>
 
 <details>
-<summary>My Cloud</summary>
+<summary>File Management Options</summary>
 
-![My Cloud](docs/screenshots/my-cloud.png)
-
-</details>
-
-<details>
-<summary>File sharing</summary>
-
-![File sharing](docs/screenshots/sharing.png)
+![File Options](docs/screenshots/file%20options.png)
 
 </details>
 
 <details>
+<summary>File Sharing</summary>
+
+![File Sharing](docs/screenshots/sharing.png)
+
+</details>
+
+<details>
+<summary>Recycle Bin</summary>
+
+![Recycle Bin](docs/screenshots/recycle-bin.png)
+
+</details>
+
+<details>
+<summary>Account Settings</summary>
+
+![Settings](docs/screenshots/setting.png)
+
+</details>
+
 <summary>Recycle Bin</summary>
 
 ![Recycle Bin](docs/screenshots/recycle-bin.png)
