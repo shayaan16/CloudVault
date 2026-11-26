@@ -1,0 +1,745 @@
+{
+  "info": {
+    "name": "CloudVault API",
+    "description": "Run CSRF, login, CSRF again; use registered account for writes. Do not export actual credentials. See API_DOCUMENTATION.md.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "email",
+      "value": "demo@cloudvault.example"
+    },
+    {
+      "key": "password",
+      "value": "CloudVaultDemo!2026"
+    },
+    {
+      "key": "csrf",
+      "value": ""
+    },
+    {
+      "key": "csrfHeader",
+      "value": "X-CSRF-TOKEN"
+    },
+    {
+      "key": "fileId",
+      "value": "1"
+    },
+    {
+      "key": "folderId",
+      "value": "1"
+    },
+    {
+      "key": "shareId",
+      "value": "1"
+    },
+    {
+      "key": "publicToken",
+      "value": ""
+    },
+    {
+      "key": "verifyToken",
+      "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": ""
+    },
+    {
+      "key": "recipientEmail",
+      "value": "second@example.test"
+    },
+    {
+      "key": "newEmail",
+      "value": "test@example.test"
+    },
+    {
+      "key": "newPassword",
+      "value": "ChangeThis!1234"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get CSRF token (before login and again after login)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/csrf"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const data = pm.response.json();",
+              "pm.collectionVariables.set(\"csrf\", data.token);",
+              "pm.collectionVariables.set(\"csrfHeader\", data.header);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "{{email}}"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get current user",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/me"
+      }
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test user\",\n  \"email\": \"{{newEmail}}\",\n  \"password\": \"{{newPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{verifyToken}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Resend verification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/resend",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{newEmail}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Forgot password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/forgot",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{newEmail}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Reset password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/reset",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"{{newPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Update profile",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/me",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test name\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Change password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/password",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"{{newPassword}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Storage stats",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/stats"
+      }
+    },
+    {
+      "name": "List folders",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/folders"
+      }
+    },
+    {
+      "name": "Create folder",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/folders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"New folder\",\n  \"parentId\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Rename folder",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/folders/{{folderId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Renamed folder\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Open folder",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/folders/{{folderId}}/open"
+      }
+    },
+    {
+      "name": "Delete empty folder",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/folders/{{folderId}}"
+      }
+    },
+    {
+      "name": "List files",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/files?scope=all"
+      }
+    },
+    {
+      "name": "Search",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/files?scope=all&q=notes"
+      }
+    },
+    {
+      "name": "List favorites",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/files?scope=favorites"
+      }
+    },
+    {
+      "name": "Upload file (choose file)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "folderId",
+              "type": "text",
+              "value": "{{folderId}}",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if(pm.response.code===201)pm.collectionVariables.set(\"fileId\",pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Download",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/files/{{fileId}}/download"
+      }
+    },
+    {
+      "name": "Rename",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"renamed.txt\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Favorite",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"favorite\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Move to root",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"move\": true,\n  \"folderId\": null\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Create expiring link",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}/links",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"hours\": 24\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if(pm.response.code===200){const d=pm.response.json();pm.collectionVariables.set(\"publicToken\",d.token);pm.collectionVariables.set(\"shareId\",d.id);}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public metadata",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/public/{{publicToken}}"
+      }
+    },
+    {
+      "name": "Public download",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/public/{{publicToken}}/download"
+      }
+    },
+    {
+      "name": "Direct share",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}/shares",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{recipientEmail}}\",\n  \"hours\": 24\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Outgoing shares",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/shares/outgoing"
+      }
+    },
+    {
+      "name": "Incoming shares",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/shares/incoming"
+      }
+    },
+    {
+      "name": "Download incoming (set shareId)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/shares/{{shareId}}/download"
+      }
+    },
+    {
+      "name": "Revoke share",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/shares/{{shareId}}"
+      }
+    },
+    {
+      "name": "Move to trash",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}"
+      }
+    },
+    {
+      "name": "List trash",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/files?scope=trash"
+      }
+    },
+    {
+      "name": "Restore",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}/restore"
+      }
+    },
+    {
+      "name": "Permanently delete (trash only)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/files/{{fileId}}/permanent"
+      }
+    },
+    {
+      "name": "Empty trash",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/trash"
+      }
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "{{csrfHeader}}",
+            "value": "{{csrf}}"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/logout"
+      }
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/actuator/health"
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+'use strict';
+(async()=>{const token=location.hash.slice(1);try{if(!/^[A-Za-z0-9_-]{43}$/.test(token))throw new Error('Invalid share link.');const path='/api/public/'+token;const file=await request(path);$('#shared-info').textContent=file.name+' · '+size(file.sizeBytes);const download=$('#shared-download');download.href=path+'/download';download.hidden=false;}catch(e){$('#shared-info').textContent=e.message;}})();

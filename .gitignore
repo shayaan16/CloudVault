@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+/target/
+/data/
+*.log
+.idea/
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+*.pem
+*.key
