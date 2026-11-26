@@ -1,117 +1,210 @@
 # CloudVault
 
-A personal cloud file storage and sharing application built with Java and Spring Boot. CloudVault lets users organize files in folders, track storage usage, and grant temporary read-only access to files without exposing the storage bucket.
+CloudVault is a full-stack file storage and sharing application built with Java and Spring Boot. It provides a personal workspace where users can upload, organize, preview, download and share files while managing their storage usage.
 
-> **Release status:** source implementation candidate, not a verified production release. Java syntax and configuration checks passed; Maven compilation, real backend integration tests, Docker, browser and cloud tests could not run in the delivery environment. Run the verification checklist before publishing. See [test report](docs/TEST_REPORT.md).
+**[Live Demo](https://cloudvault-hplj.onrender.com)** | **[Source Code](https://github.com/shayaan16/CloudVault)** | **[API Documentation](docs/API_DOCUMENTATION.md)**
+
+> The hosted application runs on Render's free instance, so the first request after inactivity may take a minute or longer. Online registration and verification email delivery are currently unresolved. Email verification and password reset have been tested successfully in the local environment. The read-only demo is available as a feature; its hosted behavior still needs verification.
+
+## Application Preview
+
+![CloudVault dashboard](docs/screenshots/dashboard.png)
+
+<details>
+<summary>Login page</summary>
+
+![Login page](docs/screenshots/login.png)
+
+</details>
+
+<details>
+<summary>My Cloud</summary>
+
+![My Cloud](docs/screenshots/my-cloud.png)
+
+</details>
+
+<details>
+<summary>File sharing</summary>
+
+![File sharing](docs/screenshots/sharing.png)
+
+</details>
+
+<details>
+<summary>Recycle Bin</summary>
+
+![Recycle Bin](docs/screenshots/recycle-bin.png)
+
+</details>
+
+<details>
+<summary>AWS S3 storage</summary>
+
+![AWS S3 storage](docs/screenshots/aws-s3.png)
+
+</details>
 
 ## Features
 
-- Email/password accounts, email verification, password reset and session-based authentication.
-- Private workspace per user, plus a read-only demo account.
-- Upload multiple files (sequential requests), drag-and-drop, download, rename, move, favorite and search.
-- Nested folders, quick-access pins and recently opened folders.
-- Browser preview for PDF, PNG, JPEG, GIF and WebP; other files download only.
-- Temporary share links, direct sharing with verified users, expiration and revocation.
-- Recycle bin, restore, permanent deletion and real storage statistics.
-- Local filesystem storage or a private AWS S3/S3-compatible bucket.
-- 50 MiB per file, 500 MiB per user (including trash); a configurable global storage cap and registration cap for budget control.
+- Email/password registration, email verification, login and password reset.
+- Private user workspaces and a restricted, read-only demo account.
+- Multiple file uploads, drag-and-drop, downloads, renaming and moving files.
+- PDF and supported image previews, search, favorites and recent files.
+- Nested folders, quick access and folder management.
+- Expiring share links, direct sharing with registered users and access revocation.
+- Recycle bin, file restoration and permanent deletion.
+- Storage usage tracking with a 50 MiB file limit and 500 MiB per-user quota, including trash.
+- Configurable local filesystem or private AWS S3 storage.
 
-## Technology stack
+## Technology Stack
 
-Java 21 · Spring Boot 3.5.16 · Spring Security · Spring Data JPA / Hibernate · MySQL 8.4 · HTML, CSS, JavaScript, Bootstrap 5 · AWS SDK for Java v2 · Docker Compose · Maven · JUnit / MockMvc · Mailpit / Brevo
+| Layer | Technologies |
+| --- | --- |
+| Backend | Java 21, Spring Boot, Spring Security, REST APIs |
+| Frontend | HTML5, CSS3, JavaScript, Bootstrap 5 |
+| Data access | JPA, Hibernate, EntityManager, JPQL |
+| Database | MySQL 8.4 (local), TiDB Cloud Starter (hosted, MySQL-compatible) |
+| File storage | Local filesystem, Amazon S3, AWS SDK for Java v2 |
+| Email | Mailpit (local testing), Brevo transactional email API |
+| Build and deployment | Maven, Docker, Docker Compose, Render |
+| Testing | JUnit, MockMvc, Postman, GitHub Actions |
 
-## Start locally (Windows / Docker Desktop)
-
-1. Install and start Docker Desktop (WSL 2 backend). Extract the project and open the `CloudVault` folder in VS Code.
-2. Open Terminal → New Terminal (PowerShell) and run:
-
-   ```powershell
-   Copy-Item .env.example .env
-   notepad .env
-   ```
-
-   Fill `DB_PASSWORD` and `MYSQL_ROOT_PASSWORD` with two different new strong passwords for this fresh database. Do not use or change passwords from an existing CloudVault installation. Keep the other defaults for local mode. Do not commit `.env`.
-
-3. Run:
-
-   ```powershell
-   docker compose up --build -d
-   docker compose ps
-   docker compose logs -f app
-   ```
-
-4. Open http://localhost:8080. Select **Explore read-only demo** or register with an email and password. Open http://localhost:8025 (Mailpit) to read the verification email, click its link, and sign in. Mailpit captures emails locally; it does not deliver to real inboxes.
-5. Stop with `docker compose down` (volumes persist). Never run `docker compose down -v` unless you intend to erase this project's database and files.
-
-Health check: http://localhost:8080/actuator/health. If port 8080 is busy change `APP_PORT` and `BASE_URL` together in `.env`. More details: [local setup](docs/LOCAL_SETUP.md).
-
-## Design
-
-The workspace follows the supplied reference: a black sidebar, white main canvas, three pastel folder cards, quick access, recent uploads and a storage gauge. Layout adapts to smaller screens. [Original design reference](docs/design-reference.png) is not a screenshot of the rebuilt app. Capture actual application screenshots after running it, rather than presenting fixture screenshots as a live application.
-
-## Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
-  A[Browser: HTML CSS JavaScript Bootstrap] -->|HTTPS / REST| B[Spring Security and controllers]
-  B --> C[Account and Vault services]
-  C --> D[JPA repository]
-  D --> E[(MySQL metadata)]
-  C --> F[Storage service]
-  F --> G[(Local disk or private S3)]
-  C --> H[Mailpit SMTP or Brevo HTTPS API]
+    A[Web browser] -->|HTTP or HTTPS| B[Spring Boot web application]
+    B --> C[Spring Security and REST controllers]
+    C --> D[Account and Vault services]
+    D --> E[JPA repository]
+    E --> F[(MySQL or TiDB - metadata)]
+    D --> G[Storage service]
+    G --> H[(Local disk or private AWS S3)]
+    D --> I[Email service]
+    I --> J[Mailpit or Brevo]
 ```
 
-The frontend is served by Spring Boot from the same origin. File bytes are separate from relational metadata. Session cookies and CSRF tokens protect state-changing endpoints. All file and folder IDs are checked against the authenticated user's identity; public link tokens are random and only their SHA-256 hashes are stored.
+The frontend is served by Spring Boot. The backend handles authentication, ownership checks, file operations and sharing permissions. Relational storage holds account information, folder relationships and file metadata; file contents are stored separately. S3 objects use generated identifiers rather than the original filenames.
 
-## Project structure
+## Security
+
+- BCrypt password hashing and session-based authentication.
+- CSRF protection for state-changing requests and HTTP-only session cookies.
+- User ownership checks on private files and folders.
+- Random, expiring share tokens stored as SHA-256 hashes.
+- Private S3 bucket access through restricted IAM credentials.
+- File size limits and configurable account and storage quotas.
+- Environment-based configuration for credentials; HTTPS and TLS for hosted connections.
+
+## Run Locally
+
+### Prerequisites
+
+- Git
+- Docker Desktop with Docker Compose
+
+Clone the repository:
+
+```powershell
+git clone https://github.com/shayaan16/CloudVault.git
+cd CloudVault
+Copy-Item .env.example .env
+```
+
+Open `.env` and set `DB_PASSWORD` and `MYSQL_ROOT_PASSWORD` to separate strong passwords for your new database. Leave `STORAGE_MODE=local` and `MAIL_MODE=smtp` for the default local setup. Never commit `.env` or credential files.
+
+Start the application:
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+| Service | URL |
+| --- | --- |
+| CloudVault | http://localhost:8080 |
+| Mailpit inbox | http://localhost:8025 |
+| Health endpoint | http://localhost:8080/actuator/health |
+
+Register an account and open Mailpit to verify the email address, or select **Explore read-only demo** on the login page. Mailpit captures messages locally rather than delivering them to real inboxes.
+
+Stop the application without deleting stored data:
+
+```powershell
+docker compose down
+```
+
+Do not use `docker compose down -v` unless you intend to delete the project's database and local file volumes.
+
+For S3 mode and real email delivery, see the [deployment guide](docs/DEPLOYMENT.md). Use a fresh database or migrate existing file contents before changing storage modes.
+
+## Online Deployment
+
+| Component | Hosted service |
+| --- | --- |
+| Spring Boot application | Render (Docker) |
+| Database | TiDB Cloud Starter |
+| File storage | AWS S3 |
+| Transactional email configuration | Brevo |
+| Version control | GitHub |
+
+The public deployment uses environment variables for database, storage and email configuration. Local and hosted environments use separate databases. See the [deployment guide](docs/DEPLOYMENT.md) for setup details.
+
+## Project Structure
 
 ```text
 CloudVault/
 ├── src/main/java/com/cloudvault/
-│   ├── config/       # Security and authenticated principal
+│   ├── config/       # Security configuration
 │   ├── model/        # JPA entities
-│   ├── repository/   # EntityManager and parameterized JPQL
-│   ├── service/      # Business logic, storage, mail, demo data
-│   └── web/          # REST controllers and error mapping
+│   ├── repository/   # Database access
+│   ├── service/      # Business logic, storage and email
+│   └── web/          # REST controllers and error handling
 ├── src/main/resources/
-│   ├── application.yml
-│   └── static/       # Dashboard, auth and public sharing pages
-├── src/test/         # MockMvc integration test cases
-├── scripts/          # Java parse and UI fixture smoke tests
-├── docs/             # Setup, deployment, API and interview guides
+│   ├── static/       # Frontend pages, CSS and JavaScript
+│   └── application.yml
+├── src/test/         # Integration tests
+├── docs/             # Documentation and screenshots
+├── scripts/          # Development checks
 ├── .github/workflows/ci.yml
+├── .env.example
 ├── Dockerfile
 ├── compose.yaml
 ├── render.yaml
-├── .env.example
 └── pom.xml
 ```
 
-## Documentation
+## Testing and Current Status
 
-- [Local setup and troubleshooting](docs/LOCAL_SETUP.md)
-- [Deployment and AWS account guide](docs/DEPLOYMENT.md)
-- [GitHub publishing](docs/GITHUB_GUIDE.md)
-- [API documentation](docs/API_DOCUMENTATION.md) and [Postman collection](docs/CloudVault.postman_collection.json)
-- [Database schema](docs/DATABASE.md) and [reference SQL](docs/schema.sql)
-- [Architecture and code walkthrough](docs/ARCHITECTURE.md)
-- [Testing / limitations](docs/TEST_REPORT.md)
-- [Resume and GitHub descriptions](docs/RESUME.md)
-- [Interview guide](docs/INTERVIEW_GUIDE.md)
+| Area | Status |
+| --- | --- |
+| Local Docker build and MySQL startup | Verified manually |
+| Local registration, verification and password reset | Verified manually with real email delivery |
+| File management, sharing and recycle bin | Verified manually |
+| S3 upload, download, preview and permanent deletion | Verified manually |
+| GitHub publishing and Render startup | Successful |
+| Hosted email verification and registration | Unresolved |
+| Hosted end-to-end file workflows | Not fully verified |
+| Automated test results | Check GitHub Actions |
 
-## Tests
-
-With Java 21 and Maven installed:
+With Java 21 and Maven installed, run the automated tests:
 
 ```bash
 mvn clean verify
 ```
 
-The integration tests use H2 in MySQL compatibility mode, a temporary directory and mocked email delivery. This is not a substitute for running on MySQL, S3 and real email. GitHub Actions runs the Maven suite on push and pull requests. See the testing document for full checks and remaining work.
+The CI workflow runs Maven verification and JavaScript syntax checks. See [GitHub Actions](https://github.com/shayaan16/CloudVault/actions) for actual results. The included [original test report](docs/TEST_REPORT.md) documents the initial delivery checks and may predate later manual testing.
 
-## Public demo
+## Documentation
 
-The recommended no-cost **temporary** demo is a Cloudflare Quick Tunnel to your local Docker application. A longer-lived public URL can use Render free compute, a MySQL-compatible TiDB Cloud Starter database, private S3 storage and Brevo transactional email. AWS credits expire; no provider guarantees indefinite free hosting. See the deployment guide for free-tier limitations and R2 alternative.
+- [Local setup](docs/LOCAL_SETUP.md)
+- [Deployment guide](docs/DEPLOYMENT.md)
+- [Architecture and code walkthrough](docs/ARCHITECTURE.md)
+- [Database design](docs/DATABASE.md)
+- [API documentation](docs/API_DOCUMENTATION.md)
+- [Postman collection](docs/CloudVault.postman_collection.json)
 
-CloudVault is an educational portfolio application, not a commercial storage service. Do not upload sensitive data or invite unrestricted public usage until the deployment and security checks have passed. There is no malware scanning, distributed rate limiting, multi-instance coordination or automated recovery of orphan objects. Review dependencies before public exposure.
+## Known Limitations
+
+CloudVault is a portfolio project, not a production-grade storage service. It uses free-tier hosting with cold starts and resource limits. AWS free-plan credits are time-limited. Hosted email delivery still needs troubleshooting. There is no malware scanning, distributed rate limiting or comprehensive security audit. Use sample files for demonstrations and avoid storing sensitive information.
